@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>Elevator</groupId>
+    <artifactId>Elevator</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>Multithreaded elevator</name>
+
+    <properties>
+            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+            <maven.compiler.source>1.8</maven.compiler.source>
+            <maven.compiler.target>1.8</maven.compiler.target>
+
+            <lo4j.version>1.2.17</lo4j.version>
+    </properties>
+
+
+    <dependencies>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${lo4j.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <finalName>Project</finalName>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <webXml>src/main/webapp/WEB-INF/web.xml</webXml>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
+</project>
