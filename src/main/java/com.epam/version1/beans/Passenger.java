@@ -1,18 +1,18 @@
-package com.epam.versionOne.beans;
+package com.epam.version1.beans;
 
 import org.apache.log4j.Logger;
 
-public class Passenger extends Thread {
+import static java.lang.Thread.sleep;
+
+public class Passenger implements Runnable {
 
     private static final Logger log = Logger.getLogger(Passenger.class);
 
-    private final static int WAITING = 0;
-    private final static int ON_ELEVATOR = 1;
     private final static int DELAY = 1000;
 
     private String name;
     private int stopFloor;
-    private int status = WAITING;
+    private int status = Status.WAITING.getStatus();
     private int currentFloor;
     private Building building;
 
@@ -33,19 +33,19 @@ public class Passenger extends Thread {
         try {
             sleep(DELAY);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.error(e);
         }
 
         while (true) {
-            if (currentFloor == stopFloor && status == ON_ELEVATOR) {
+            if (currentFloor == stopFloor && status == Status.ON_ELEVATOR.getStatus()) {
                 log.info(name + " left on the floor " + stopFloor);
                 break;
             } else {
                 Elevator elevator = building.callElevator(currentFloor);
-                status = ON_ELEVATOR;
+                status = Status.ON_ELEVATOR.getStatus();
                 currentFloor = elevator.takeElevator(stopFloor, currentFloor, this);
                 if (currentFloor != stopFloor) {
-                    status = WAITING;
+                    status = Status.WAITING.getStatus();
                     building.waitForElevator();
                 }
             }
