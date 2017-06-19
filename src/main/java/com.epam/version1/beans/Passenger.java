@@ -12,7 +12,7 @@ public class Passenger implements Runnable {
 
     private String name;
     private int stopFloor;
-    private int status = Status.WAITING.getStatus();
+    private Status status = Status.WAITING;
     private int currentFloor;
     private Building building;
 
@@ -37,15 +37,15 @@ public class Passenger implements Runnable {
         }
 
         while (true) {
-            if (currentFloor == stopFloor && status == Status.ON_ELEVATOR.getStatus()) {
+            if (currentFloor == stopFloor && status == Status.ON_ELEVATOR) {
                 log.info(name + " left on the floor " + stopFloor);
                 break;
             } else {
                 Elevator elevator = building.callElevator(currentFloor);
-                status = Status.ON_ELEVATOR.getStatus();
+                status = Status.ON_ELEVATOR;
                 currentFloor = elevator.takeElevator(stopFloor, currentFloor, this);
                 if (currentFloor != stopFloor) {
-                    status = Status.WAITING.getStatus();
+                    status = Status.WAITING;
                     building.waitForElevator();
                 }
             }

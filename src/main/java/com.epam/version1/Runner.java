@@ -46,9 +46,10 @@ public class Runner {
             passengersThread.add(new Thread(new Passenger("Passenger " + i, endFloor, startFloor, building)));
         }
 
-        building.startElevators();
 
         passengersThread.forEach(Thread::start);
+
+        building.startElevators();
 
         for (Thread passenger : passengersThread) {
             try {
