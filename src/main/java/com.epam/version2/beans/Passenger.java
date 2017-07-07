@@ -1,4 +1,6 @@
-package com.epam.version2;
+package com.epam.version2.beans;
+
+import com.epam.version2.Mode;
 
 import java.awt.*;
 
@@ -20,7 +22,7 @@ public class Passenger implements Runnable {
     private int destinationPosX;
 
 
-    public Passenger(String name, int xAxis, int yAxis, int src, int dest) {
+    public Passenger(String name, int xAxis, int yAxis, int src, int dest, Building building) {
         this.name = name;
         this.xAxis = xAxis;
         this.yAxis = yAxis;
@@ -30,8 +32,25 @@ public class Passenger implements Runnable {
         this.stopFloor = dest;
         this.currentFloor = src;
         this.destinationPosX = -1;
+        this.building = building;
 
         this.status = Mode.WAIT;
+    }
+
+    public void setxAxis(int xAxis) {
+        this.xAxis = xAxis;
+    }
+
+    public int getxAxis() {
+        return xAxis;
+    }
+
+    public int getyAxis() {
+        return yAxis;
+    }
+
+    public void setyAxis(int yAxis) {
+        this.yAxis = yAxis;
     }
 
     public String getName() {
@@ -48,9 +67,7 @@ public class Passenger implements Runnable {
 //        } else {
 //            status = direction == Mode.LEFT ? Mode.LEFT : Mode.RIGHT;
 //        }
-        status = Mode.RIGHT;
 
-        setCoordinate();
     }
 
 
@@ -62,10 +79,10 @@ public class Passenger implements Runnable {
             case DOWN:
                 ++yAxis;
                 break;
-            case LEFT:
+            case RIGHT:
                 ++xAxis;
                 break;
-            case RIGHT:
+            case LEFT:
                 --xAxis;
                 break;
             default:
@@ -76,28 +93,45 @@ public class Passenger implements Runnable {
 
     @Override
     public void run() {
-        try {
-            sleep(500);
-        } catch (InterruptedException e) {
-//            log.error(e);
-        }
-
         while (true) {
             if (currentFloor == stopFloor && status == Mode.ON_ELEVATOR) {
-                System.out.println(name + " left on the floor " + stopFloor);
-//                log.info(name + " left on the floor " + stopFloor);
+
+                System.out.println(this + "  LEFT FLOOR :" + stopFloor);
+
+                building.getElevator().getPassengers().remove(this);
+
+                while (xAxis > -20) {
+                    status = Mode.LEFT;
+                    needSleep(100);
+                    setCoordinate();
+                }
                 break;
             } else {
                 Elevator elevator = building.callElevator(currentFloor);
                 status = Mode.ON_ELEVATOR;
+
                 currentFloor = elevator.takeElevator(stopFloor, currentFloor, this);
                 if (currentFloor != stopFloor) {
                     status = Mode.WAIT;
                     building.waitForElevator();
                 }
             }
-        }
+//
+            needSleep(100);
 
+
+            setCoordinate();
+        }
+    }
+
+
+    public void needSleep(int delay) {
+        try {
+            sleep(delay);
+        } catch (InterruptedException e) {
+            // TODO
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -1,10 +1,10 @@
-package com.epam.version2;
+package com.epam.version2.beans;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -12,24 +12,24 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Building extends JFrame implements ActionListener {
 
 
-    private Random random;
+    private Random random = new Random();
+    ;
 
     private int inputNumberPassengers;
     private int inputNumberFloors;
     private int inputCapacity;
     private Elevator elevator;
-    private int lastFloor;
+
+    public Elevator getElevator() {
+        return elevator;
+    }
+
+    private JTextArea logger = new JTextArea(8, 60);
 
     private Timer timer = new Timer(1000, this);
-    private int counter;
-    private int timeElapsedInSecs;
-    private boolean running = true;
 
     private List<Floor> floors = new CopyOnWriteArrayList<>();
 
-    public int getInputNumberPassengers() {
-        return inputNumberPassengers;
-    }
 
     public int getInputNumberFloors() {
         return inputNumberFloors;
@@ -43,12 +43,10 @@ public class Building extends JFrame implements ActionListener {
     public Building() {
 
         timer.start();
-        random = new Random();
-        elevator = new Elevator("Elevator: ", getInputCapacity(), 1, this, getInputNumberFloors(), 600, 400);
+
 
 
         JTextArea logger = new JTextArea(8, 60);
-        System.setOut(new PrintStream(new PrintStreamCapturer(logger, System.out)));
 
 
         // Show and setting work window
@@ -99,7 +97,7 @@ public class Building extends JFrame implements ActionListener {
             inputNumberFloors = Integer.valueOf(numFloor.getText().trim());
 
             inputCapacity = Integer.parseInt(elevatorCapacity.getText().trim());
-
+            elevator = new Elevator("Elevator: ", getInputCapacity(), 1, this, getInputNumberFloors(), 600, 400);
             new Thread(elevator).start();
 
             for (int i = 0; i < getInputNumberFloors(); i++) {
@@ -107,11 +105,22 @@ public class Building extends JFrame implements ActionListener {
             }
             spawn();
 
-
+            List<Thread> threads = new ArrayList<>();
+            for (Floor floor : floors) {
+                for (Passenger passenger : floor.getPassengers()) {
+                    threads.add(new Thread(passenger));
+                }
+            }
+            threads.forEach(Thread::start);
         });
 
 
         JButton stop = new JButton("Pause");
+
+        stop.addActionListener((e) -> {
+
+
+        });
         topPanel.add(start);
         topPanel.add(stop);
 
@@ -130,6 +139,11 @@ public class Building extends JFrame implements ActionListener {
 
     }
 
+    /**
+     * Displays the elevator on the stage
+     *
+     * @param g Object classes Graphics
+     */
     @Override
     public synchronized void paint(Graphics g) {
         super.paint(g);
@@ -149,11 +163,9 @@ public class Building extends JFrame implements ActionListener {
 
     public synchronized Elevator callElevator(int passengerFloor) {
         while (true) {
-//            for (Elevator elevator : elevators) {
-//                if (elevator.getCurrentFloor() == passengerFloor && elevator.getCurrentVolume() < elevator.getCapacity()) {
-//                    return elevator;
-//                }
-//            }
+            if(elevator.getCurrentFloor() == passengerFloor && elevator.getCurrentVolume() < elevator.getCapacity()){
+                return elevator;
+            }
             waitForElevator();
         }
     }
@@ -167,19 +179,18 @@ public class Building extends JFrame implements ActionListener {
     }
 
 
+    /**
+     * Randomly assigns the passengers the start and end floor
+     */
     public void spawn() {
         for (int i = 0; i < inputNumberPassengers; i++) {
             int scrFloor = random.nextInt(inputNumberFloors);
             int destFloor;
-
-
             do {
                 destFloor = random.nextInt(inputNumberFloors);
             } while (destFloor == scrFloor);
-
-            floors.get(scrFloor).addPassengers(new Passenger("Passenger" + i, 800 - i * 2, 100 * (5 - scrFloor) - 50, scrFloor + 1, destFloor + 1));
+            floors.get(scrFloor).addPassengers(new Passenger("Passenger" + i, 800, 100 * (5 - scrFloor) - 50, scrFloor + 1, destFloor + 1,this));
         }
-
     }
 
     @Override
