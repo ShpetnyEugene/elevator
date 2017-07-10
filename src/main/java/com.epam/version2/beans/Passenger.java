@@ -1,25 +1,32 @@
 package com.epam.version2.beans;
 
-import com.epam.version2.Mode;
+import com.epam.version2.Move;
+import com.epam.version2.StatusPassenger;
 
 import java.awt.*;
 
 import static java.lang.Thread.sleep;
 
+/**
+ * @author Shpetny Eugene
+ * @version 1.0
+ * @since 07/17
+ * */
 public class Passenger implements Runnable {
 
     private String name;
+    private int currentFloor;
+    private int stopFloor;
+    private int sourceFloor;
+    private Building building;
+    private boolean run;
+    private StatusPassenger status;
+
+    private Move direction = Move.LEFT;
     private int xAxis;
     private int yAxis;
     private int width;
     private int height;
-    private int currentFloor;
-    private Mode direction = Mode.LEFT;
-    private int stopFloor;
-    private int sourceFloor;
-    private Building building;
-    private Mode status;
-    private int destinationPosX;
 
 
     public Passenger(String name, int xAxis, int yAxis, int src, int dest, Building building) {
@@ -31,10 +38,9 @@ public class Passenger implements Runnable {
         this.sourceFloor = src;
         this.stopFloor = dest;
         this.currentFloor = src;
-        this.destinationPosX = -1;
         this.building = building;
-
-        this.status = Mode.WAIT;
+        run = true;
+        this.status = StatusPassenger.WAIT;
     }
 
     public void setxAxis(int xAxis) {
@@ -61,18 +67,11 @@ public class Passenger implements Runnable {
         g.fillRect(xAxis, yAxis, width, height);
         g.drawString("S: " + (sourceFloor), xAxis - 5, yAxis - 18);
         g.drawString("D: " + (stopFloor), xAxis - 5, yAxis - 5);
-
-//        if (xAxis == destinationPosX) {
-//            status = Mode.WAIT;
-//        } else {
-//            status = direction == Mode.LEFT ? Mode.LEFT : Mode.RIGHT;
-//        }
-
     }
 
 
     private void setCoordinate() {
-        switch (status) {
+        switch (direction) {
             case UP:
                 --yAxis;
                 break;
@@ -90,46 +89,46 @@ public class Passenger implements Runnable {
         }
     }
 
-
     @Override
     public void run() {
-        while (true) {
-            if (currentFloor == stopFloor && status == Mode.ON_ELEVATOR) {
-
+        while (run) {
+            if (currentFloor == stopFloor && status == StatusPassenger.ON_ELEVATOR) {
                 System.out.println(this + "  LEFT FLOOR :" + stopFloor);
-
                 building.getElevator().getPassengers().remove(this);
-
                 while (xAxis > -20) {
-                    status = Mode.LEFT;
+                    direction = Move.LEFT;
                     needSleep(100);
                     setCoordinate();
                 }
                 break;
             } else {
                 Elevator elevator = building.callElevator(currentFloor);
-                status = Mode.ON_ELEVATOR;
-
+                status = StatusPassenger.ON_ELEVATOR;
                 currentFloor = elevator.takeElevator(stopFloor, currentFloor, this);
                 if (currentFloor != stopFloor) {
-                    status = Mode.WAIT;
+                    status = StatusPassenger.WAIT;
                     building.waitForElevator();
                 }
             }
-//
             needSleep(100);
-
-
             setCoordinate();
         }
     }
 
+    // TODO
+    public void stopPassenger(){
+        run = false;
+    }
 
+
+    // TODO
     public void needSleep(int delay) {
         try {
             sleep(delay);
         } catch (InterruptedException e) {
-            // TODO
+        /**
+         * TODO
+         * */
             e.printStackTrace();
         }
     }

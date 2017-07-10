@@ -1,5 +1,8 @@
 package com.epam.version2.beans;
 
+import com.epam.version2.PrintStreamCapturer;
+import org.apache.log4j.Logger;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -12,8 +15,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Building extends JFrame implements ActionListener {
 
 
+    private Logger log = Logger.getLogger(Building.class);
     private Random random = new Random();
-    ;
 
     private int inputNumberPassengers;
     private int inputNumberFloors;
@@ -25,6 +28,10 @@ public class Building extends JFrame implements ActionListener {
     }
 
     private JTextArea logger = new JTextArea(8, 60);
+
+    public JTextArea getLogger() {
+        return logger;
+    }
 
     private Timer timer = new Timer(1000, this);
 
@@ -40,16 +47,17 @@ public class Building extends JFrame implements ActionListener {
     }
 
 
+    {
+        System.setErr(new PrintStreamCapturer(logger, System.err));
+    }
+
     public Building() {
 
         timer.start();
 
+        log.info("FFFF");
 
 
-        JTextArea logger = new JTextArea(8, 60);
-
-
-        // Show and setting work window
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setSize(1400, 700);
         setTitle("Elevator Simulation");
@@ -75,8 +83,9 @@ public class Building extends JFrame implements ActionListener {
         topPanel.add(numFloors);
         topPanel.add(numFloor);
 
-        // Add elevator capacity
-
+        /**
+         * Add elevator capacity
+         * */
         JLabel elevatorsCapacity = new JLabel("Elevator capacity");
         JTextArea elevatorCapacity = new JTextArea(1, 2);
         elevatorCapacity.setPreferredSize(new Dimension(1, 2));
@@ -84,10 +93,16 @@ public class Building extends JFrame implements ActionListener {
         topPanel.add(elevatorCapacity);
 
 
-        // Add two buttons start and stop
+//        log.info("Button start is pressed");
+
+        /**
+         * Add two buttons start and stop
+         * */
         JButton start = new JButton("Start");
 
-        // Add action for start button
+        /**
+         *  Add action for start button
+         * */
         start.addActionListener((e) -> {
 
 
@@ -115,11 +130,10 @@ public class Building extends JFrame implements ActionListener {
         });
 
 
-        JButton stop = new JButton("Pause");
+        JButton stop = new JButton("Stop");
 
         stop.addActionListener((e) -> {
-
-
+            stop();
         });
         topPanel.add(start);
         topPanel.add(stop);
@@ -161,20 +175,39 @@ public class Building extends JFrame implements ActionListener {
         notifyAll();
     }
 
+    /**
+     * TODO
+     */
     public synchronized Elevator callElevator(int passengerFloor) {
         while (true) {
-            if(elevator.getCurrentFloor() == passengerFloor && elevator.getCurrentVolume() < elevator.getCapacity()){
+            if (elevator.getCurrentFloor() == passengerFloor && elevator.getCurrentVolume() < elevator.getCapacity()) {
                 return elevator;
             }
             waitForElevator();
         }
     }
 
+
+    /**
+     * TODO
+     */
+    public void stop() {
+        elevator.stopElevator();
+        for (Floor floor : floors) {
+            for (Passenger passenger : floor.getPassengers()) {
+                passenger.stopPassenger();
+            }
+        }
+    }
+
+    /**
+     * TODO
+     */
     public synchronized void waitForElevator() {
         try {
             wait();
         } catch (InterruptedException e) {
-//            log.error(e);
+//         TODO   log.error(e);
         }
     }
 
@@ -189,7 +222,7 @@ public class Building extends JFrame implements ActionListener {
             do {
                 destFloor = random.nextInt(inputNumberFloors);
             } while (destFloor == scrFloor);
-            floors.get(scrFloor).addPassengers(new Passenger("Passenger" + i, 800, 100 * (5 - scrFloor) - 50, scrFloor + 1, destFloor + 1,this));
+            floors.get(scrFloor).addPassengers(new Passenger("Passenger" + i, 800, 100 * (5 - scrFloor) - 50, scrFloor + 1, destFloor + 1, this));
         }
     }
 
