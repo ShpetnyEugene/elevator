@@ -16,6 +16,7 @@ public class Building extends JFrame implements ActionListener {
 
 
     private Logger log = Logger.getLogger(Building.class);
+    private Timer timer = new Timer(1000, this);
     private Random random = new Random();
 
     private int inputNumberPassengers;
@@ -23,39 +24,25 @@ public class Building extends JFrame implements ActionListener {
     private int inputCapacity;
     private Elevator elevator;
 
-    public Elevator getElevator() {
-        return elevator;
-    }
-
+    private List<Floor> floors = new CopyOnWriteArrayList<>();
     private JTextArea logger = new JTextArea(8, 60);
 
     public JTextArea getLogger() {
         return logger;
     }
 
-    private Timer timer = new Timer(1000, this);
 
-    private List<Floor> floors = new CopyOnWriteArrayList<>();
-
-
-    public int getInputNumberFloors() {
-        return inputNumberFloors;
-    }
-
-    public int getInputCapacity() {
-        return inputCapacity;
-    }
-
-
-    {
-        System.setErr(new PrintStreamCapturer(logger, System.err));
+    public List<Floor> getFloors() {
+        return floors;
     }
 
     public Building() {
 
+
         timer.start();
 
-        log.info("FFFF");
+
+        System.setOut(new PrintStreamCapturer(getLogger(), System.out));
 
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -106,6 +93,8 @@ public class Building extends JFrame implements ActionListener {
         start.addActionListener((e) -> {
 
 
+            System.out.println("Pressed button Start");
+            log.info("Pressed button Start");
             // TODO Add check input
             inputNumberPassengers = Integer.parseInt(numPassenger.getText().trim());
 
@@ -133,6 +122,8 @@ public class Building extends JFrame implements ActionListener {
         JButton stop = new JButton("Stop");
 
         stop.addActionListener((e) -> {
+            System.out.println("Pressed button Stop");
+            log.info("Pressed button Stop");
             stop();
         });
         topPanel.add(start);
@@ -175,9 +166,7 @@ public class Building extends JFrame implements ActionListener {
         notifyAll();
     }
 
-    /**
-     * TODO
-     */
+
     public synchronized Elevator callElevator(int passengerFloor) {
         while (true) {
             if (elevator.getCurrentFloor() == passengerFloor && elevator.getCurrentVolume() < elevator.getCapacity()) {
@@ -187,9 +176,12 @@ public class Building extends JFrame implements ActionListener {
         }
     }
 
+    public Elevator getElevator() {
+        return elevator;
+    }
 
     /**
-     * TODO
+     * Stop all threads
      */
     public void stop() {
         elevator.stopElevator();
@@ -200,14 +192,12 @@ public class Building extends JFrame implements ActionListener {
         }
     }
 
-    /**
-     * TODO
-     */
     public synchronized void waitForElevator() {
         try {
             wait();
         } catch (InterruptedException e) {
-//         TODO   log.error(e);
+            e.printStackTrace();
+            log.error(e);
         }
     }
 
@@ -222,9 +212,18 @@ public class Building extends JFrame implements ActionListener {
             do {
                 destFloor = random.nextInt(inputNumberFloors);
             } while (destFloor == scrFloor);
-            floors.get(scrFloor).addPassengers(new Passenger("Passenger" + i, 800, 100 * (5 - scrFloor) - 50, scrFloor + 1, destFloor + 1, this));
+            floors.get(scrFloor).addPassengers(new Passenger("Passenger " + i, 800, 100 * (5 - scrFloor) - 50, scrFloor + 1, destFloor + 1, this));
         }
     }
+
+    public int getInputNumberFloors() {
+        return inputNumberFloors;
+    }
+
+    public int getInputCapacity() {
+        return inputCapacity;
+    }
+
 
     @Override
     public void actionPerformed(ActionEvent e) {

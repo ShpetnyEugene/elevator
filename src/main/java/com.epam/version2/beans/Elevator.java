@@ -1,6 +1,7 @@
 package com.epam.version2.beans;
 
 import com.epam.version2.Move;
+import org.apache.log4j.Logger;
 
 import java.awt.*;
 import java.util.List;
@@ -25,8 +26,9 @@ public class Elevator implements Runnable {
     private int height;
     private int doorWidth;
     private Move doorMode = Move.CLOSE;
-
     private List<Passenger> passengers = new CopyOnWriteArrayList<>();
+
+    private Logger log = Logger.getLogger(Elevator.class);
 
     public Elevator(String name, int capacity, int currentFloor, Building building, int numberFloors, int xAxis, int yAxis) {
         this.name = name;
@@ -67,17 +69,23 @@ public class Elevator implements Runnable {
         return currentFloor;
     }
 
+    /**
+     * Get elevator for passenger
+     *
+     * @param newFloor Floor where needed
+     * @param current Current floor
+     * @param passenger Passenger getting elevator
+     */
     public synchronized int takeElevator(int newFloor, int current, Passenger passenger) {
-        int distance = 10;
+        int distance = 22;
         if (current == currentFloor && currentVolume < capacity && running) {
             currentVolume++;
-
+            log.info(passenger.getName() + " got " + toString() + " on floor " + current);
             System.out.println(passenger.getName() + " got " + toString() + " on floor " + current);
             passengers.add(passenger);
 
-            // Enter in the elevator
-            while (passenger.getxAxis() != 615+distance) {
-                if(!running){
+            while (passenger.getxAxis() != 615 + distance * passengers.indexOf(passenger)) {
+                if (!running) {
                     break;
                 }
                 passenger.setxAxis(passenger.getxAxis() - 1);
@@ -88,8 +96,8 @@ public class Elevator implements Runnable {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    // TODO
-//                    log.error(e);
+                    e.printStackTrace();
+                    log.error("Not found needed floor", e);
 
                 }
             }
@@ -100,39 +108,31 @@ public class Elevator implements Runnable {
         }
     }
 
-    public int getCapacity() {
-        return capacity;
-    }
 
     @Override
     public void run() {
         while (running) {
-            while (doorWidth > 0) {
-                doorMode = Move.OPEN;
-                door();
-            }
-            if (yAxis == 500 - 100 * numberFloors) {
-                direction = Move.DOWN;
-            }
-            if (yAxis > 400) {
-                direction = Move.UP;
-            }
 
-            if(yAxis % 100 == 0){
+            if (yAxis % 100 == 0) {
+                doorMode = Move.OPEN;
+                while (doorWidth > 0) {
+                    needSleep(100);
+                    door();
+                }
                 needSleep(6000);
+
             }
 
             needSleep(100);
+
+
             notifyPassengers();
             building.tellAt();
             step();
-            door();
         }
+
     }
 
-    /**
-     * TODO
-     */
     private synchronized void notifyPassengers() {
         notifyAll();
     }
@@ -153,8 +153,6 @@ public class Elevator implements Runnable {
                         direction = Move.DOWN;
                     }
                 }
-
-
                 break;
             case DOWN:
                 ++yAxis;
@@ -174,6 +172,9 @@ public class Elevator implements Runnable {
     }
 
 
+    /**
+     *
+     * */
     public void door() {
         switch (doorMode) {
             case OPEN:
@@ -192,18 +193,28 @@ public class Elevator implements Runnable {
     }
 
     /**
-     * TODO
+     * Stops the stream for a specified number of milliseconds
+     *
+     * @param delay The number of milliseconds to which you want to pause the flow
      */
     public void needSleep(int delay) {
         try {
             sleep(delay);
         } catch (InterruptedException e) {
-            // TODO
             e.printStackTrace();
+            log.error(e);
         }
     }
 
-    public void stopElevator(){
+    public int getCapacity() {
+        return capacity;
+    }
+
+    /***
+     * Stop elevator
+     */
+
+    public void stopElevator() {
         running = false;
     }
 
