@@ -1,4 +1,4 @@
-package com.epam.version2;
+package com.epam.version2.modes;
 
 /**
  * @author Shpetny Eugene

@@ -1,8 +1,9 @@
 # Elevator
 
+
 ### The task:
 We have a building in several floors, in which there is a lift of a certain capacity. On the floors of the building are people who want to move to another floor. We need to organize their transportation with the help of an elevator.
-
+##Version 1
 ### Initial data:
 - Number of floors in the building (NUMBER_FLOORS)
 - Number of elevators in the building (NUMBER_ELEVATORS)
@@ -27,3 +28,13 @@ We have a building in several floors, in which there is a lift of a certain capa
 
 ### Logging of the transportation process:
 All stages of landing / disembarking passengers, as well as moving the elevator between the floors are logged into a special logfile (log_file.log) and displayed on the console. All logging is done using the library (Log4j), whose configuration is in the resource directory.
+
+##Version 2
+
+###Initial data
+- Number of floors in the building (inputNumberFloors)
+- Number of people that each elevator can hold (inputCapacity)
+- Number of passenger in building (inputNumberPassengers)
+
+### Demo
+![Demo](demo_elevator.gif)

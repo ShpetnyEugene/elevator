@@ -1,7 +1,7 @@
 package com.epam.version2.beans;
 
-import com.epam.version2.Move;
-import com.epam.version2.StatusPassenger;
+import com.epam.version2.modes.Move;
+import com.epam.version2.modes.StatusPassenger;
 import org.apache.log4j.Logger;
 
 import java.awt.*;
@@ -30,6 +30,7 @@ public class Passenger implements Runnable {
     private int yAxis;
     private int width;
     private int height;
+    private final int DELAY = 100;
 
     public Passenger(String name, int xAxis, int yAxis, int src, int dest, Building building) {
         this.name = name;
@@ -72,6 +73,14 @@ public class Passenger implements Runnable {
         }
     }
 
+    public StatusPassenger getStatus() {
+        return status;
+    }
+
+    public void setStatus(StatusPassenger status) {
+        this.status = status;
+    }
+
     @Override
     public void run() {
         while (run) {
@@ -80,24 +89,24 @@ public class Passenger implements Runnable {
                 System.out.println(this + " left elevator on floor " + stopFloor);
                 building.getElevator().getPassengers().remove(this);
                 direction = Move.LEFT;
+
                 while (xAxis > -10) {
-                    if(!run){
+                    if (!run) {
                         break;
                     }
                     setCoordinate();
-                    needSleep(100);
+                    needSleep(DELAY);
                 }
                 break;
             } else {
                 Elevator elevator = building.callElevator(currentFloor);
-                status = StatusPassenger.ON_ELEVATOR;
                 currentFloor = elevator.takeElevator(stopFloor, currentFloor, this);
                 if (currentFloor != stopFloor) {
                     status = StatusPassenger.WAIT;
                     building.waitForElevator();
                 }
             }
-            needSleep(100);
+            needSleep(DELAY);
             setCoordinate();
         }
     }
