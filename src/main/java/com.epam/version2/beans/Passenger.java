@@ -1,7 +1,10 @@
 package com.epam.version2.beans;
 
+import com.epam.version2.*;
+import com.epam.version2.Window;
 import com.epam.version2.modes.Move;
 import com.epam.version2.modes.StatusPassenger;
+import com.epam.version2.services.MessageService;
 import org.apache.log4j.Logger;
 
 import java.awt.*;
@@ -11,12 +14,13 @@ import static java.lang.Thread.sleep;
 /**
  * @author Shpetny Eugene
  * @version 1.0
- * @since 07/17
  */
-public class Passenger implements Runnable {
+public class Passenger implements Runnable, Drawable {
 
     private static final Logger log = Logger.getLogger(Passenger.class);
+    private static final int AWAY_COORDINATE = -10;
 
+    private MessageService messageService = new MessageService(Window.getLogger());
     private String name;
     private int currentFloor;
     private int stopFloor;
@@ -73,24 +77,16 @@ public class Passenger implements Runnable {
         }
     }
 
-    public StatusPassenger getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusPassenger status) {
-        this.status = status;
-    }
 
     @Override
     public void run() {
         while (run) {
             if (currentFloor == stopFloor && status == StatusPassenger.ON_ELEVATOR) {
                 log.info(this + " left elevator on floor " + stopFloor);
-                System.out.println(this + " left elevator on floor " + stopFloor);
+                messageService.writeMessage(this + " left elevator on floor " + stopFloor);
                 building.getElevator().getPassengers().remove(this);
                 direction = Move.LEFT;
-
-                while (xAxis > -10) {
+                while (xAxis > AWAY_COORDINATE) {
                     if (!run) {
                         break;
                     }
@@ -139,6 +135,14 @@ public class Passenger implements Runnable {
 
     public int getxAxis() {
         return xAxis;
+    }
+
+    public StatusPassenger getStatus() {
+        return status;
+    }
+
+    public void setStatus(StatusPassenger status) {
+        this.status = status;
     }
 
     public int getyAxis() {

@@ -1,7 +1,10 @@
 package com.epam.version2.beans;
 
+import com.epam.version2.*;
+import com.epam.version2.Window;
 import com.epam.version2.modes.Move;
 import com.epam.version2.modes.StatusPassenger;
+import com.epam.version2.services.MessageService;
 import org.apache.log4j.Logger;
 
 import java.awt.*;
@@ -10,7 +13,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static java.lang.Thread.sleep;
 
-public class Elevator implements Runnable {
+public class Elevator implements Runnable, Drawable {
+
+    private static final Logger log = Logger.getLogger(Elevator.class);
+    private final int DELAY;
+    private static final int FLOOR_DELAY = 5000;
+    private static final int DISTANCE = 22;
+    private static final int COORDINATE_ELEVATOR = 615;
+    private static final int COORDINATE_FLOOR = 100;
+    private static final int GROUND_FLOOR = 1;
 
     private String name;
     private int capacity;
@@ -20,6 +31,7 @@ public class Elevator implements Runnable {
     private boolean running = true;
     private int numberFloors;
 
+    private MessageService messageService = new MessageService(Window.getLogger());
     private Move direction;
     private int xAxis;
     private int yAxis;
@@ -29,9 +41,6 @@ public class Elevator implements Runnable {
     private Move doorMode = Move.CLOSE;
     private List<Passenger> passengers = new CopyOnWriteArrayList<>();
 
-    private Logger log = Logger.getLogger(Elevator.class);
-    private final int DELAY;
-    private final int FLOOR_DELAY = 6000;
 
     public Elevator(String name, int capacity, int currentFloor, Building building, int numberFloors, int xAxis, int yAxis) {
         this.name = name;
@@ -46,15 +55,14 @@ public class Elevator implements Runnable {
         this.height = 100;
         this.doorWidth = width / 2;
         this.direction = Move.UP;
-        DELAY = building.getDelay() + 100;
+        DELAY = 100;
+
     }
 
     public void draw(Graphics g) {
-
         for (Passenger passenger : passengers) {
             passenger.draw(g);
         }
-
         g.drawRect(xAxis, yAxis, width, height);
         g.setColor(Color.WHITE);
         g.fillRect(xAxis, yAxis, doorWidth, height);
@@ -62,11 +70,6 @@ public class Elevator implements Runnable {
         g.setColor(Color.BLACK);
         g.drawRect(xAxis, yAxis, doorWidth, height);
         g.drawRect(xAxis + width - doorWidth, yAxis, doorWidth, height);
-    }
-
-
-    public int getCurrentFloor() {
-        return currentFloor;
     }
 
     /**
@@ -77,27 +80,26 @@ public class Elevator implements Runnable {
      * @param passenger Passenger getting elevator
      */
     public synchronized int takeElevator(int newFloor, int current, Passenger passenger) {
-        int distance = 22;
+
         if (current == currentFloor && currentVolume < capacity && running) {
             currentVolume++;
             log.info(passenger.getName() + " got " + toString() + " on floor " + current);
-            System.out.println(passenger.getName() + " got " + toString() + " on floor " + current);
+            messageService.writeMessage(passenger.getName() + " got " + toString() + " on floor " + current);
             passengers.add(passenger);
-            while (passenger.getxAxis() != 615 + distance * passengers.indexOf(passenger)) {
+            while (passenger.getxAxis() != COORDINATE_ELEVATOR + DISTANCE * passengers.indexOf(passenger)) {
                 if (!running) {
                     break;
                 }
                 passenger.setxAxis(passenger.getxAxis() - 1);
                 needSleep(DELAY);
             }
-
             passenger.setStatus(StatusPassenger.ON_ELEVATOR);
-
             while (newFloor != currentFloor) {
                 try {
                     wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                    messageService.writeMessage("Not found needed floor");
                     log.error("Not found needed floor", e);
 
                 }
@@ -113,28 +115,18 @@ public class Elevator implements Runnable {
     @Override
     public void run() {
         while (running) {
-            if (yAxis % 100 == 0) {
+            if (yAxis % COORDINATE_FLOOR == 0) {
                 doorMode = Move.OPEN;
                 while (doorWidth > 0) {
                     needSleep(DELAY);
                     door();
                 }
             }
-            if (yAxis % 100 == 0) {
+            if (yAxis % COORDINATE_FLOOR == 0) {
                 needSleep(FLOOR_DELAY);
             }
-
-
-            Floor temp = building.getFloors().get(currentFloor - 1);
-
-            int onElevator = 0;
-            for (Passenger passenger : temp.getPassengers()) {
-                if (passenger.getStatus() == StatusPassenger.ON_ELEVATOR) {
-                    onElevator++;
-                }
-            }
-
-            if (building.getFloors().get(currentFloor - 1).getPassengers().size() == onElevator || currentVolume == capacity) {
+            
+            if (building.getFloors().get(currentFloor - 1).getPassengers().size() == passengers.size() || currentVolume == capacity) {
                 doorMode = Move.CLOSE;
                 while (doorWidth < width / 2) {
                     needSleep(DELAY);
@@ -167,7 +159,7 @@ public class Elevator implements Runnable {
                 for (Passenger passenger : passengers) {
                     passenger.setyAxis(passenger.getyAxis() - 1);
                 }
-                if (yAxis % 100 == 0) {
+                if (yAxis % COORDINATE_FLOOR == 0) {
                     currentFloor++;
                     if (currentFloor == numberFloors) {
                         direction = Move.DOWN;
@@ -179,9 +171,9 @@ public class Elevator implements Runnable {
                 for (Passenger passenger : passengers) {
                     passenger.setyAxis(passenger.getyAxis() + 1);
                 }
-                if (yAxis % 100 == 0) {
+                if (yAxis % COORDINATE_FLOOR == 0) {
                     --currentFloor;
-                    if (currentFloor == 1) {
+                    if (currentFloor == GROUND_FLOOR) {
                         direction = Move.UP;
                     }
                 }
@@ -226,6 +218,10 @@ public class Elevator implements Runnable {
         }
     }
 
+    public void setyAxis(int yAxis) {
+        this.yAxis = yAxis;
+    }
+
     public int getCapacity() {
         return capacity;
     }
@@ -240,6 +236,10 @@ public class Elevator implements Runnable {
 
     public List<Passenger> getPassengers() {
         return passengers;
+    }
+
+    public int getCurrentFloor() {
+        return currentFloor;
     }
 
     @Override

@@ -1,6 +1,8 @@
 package com.epam.version2.beans;
 
 
+import com.epam.version2.Drawable;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,9 +10,14 @@ import java.util.List;
 /**
  * @author Shpetny Eugene
  * @version 1.0
- * @since 07/2017
  */
-public class Floor {
+public class Floor implements Drawable {
+
+    private static final int DISTANCE_PASSENGER = 25;
+    private static final int START = 750;
+    private static final int X_COORDINATE_LABEL = 35;
+    private static final int Y_COORDINATE_LABEL = 20;
+
     private int x1;
     private int x2;
     private int x3;
@@ -36,7 +43,7 @@ public class Floor {
     public void draw(Graphics g) {
         g.drawLine(x1, y, x2, y);
         g.drawLine(x3, y, x4, y);
-        g.drawString("Floor: " + number, 35, y - 20);
+        g.drawString("Floor: " + number, X_COORDINATE_LABEL, y - Y_COORDINATE_LABEL);
 
         for (Passenger passenger : passengers) {
             passenger.draw(g);
@@ -49,7 +56,7 @@ public class Floor {
      * @param passenger Passenger to be placed on this floor
      */
     public void addPassengers(Passenger passenger) {
-        passenger.setxAxis(!passengers.isEmpty() ? passengers.get(passengers.size() - 1).getxAxis() + 25 : 750);
+        passenger.setxAxis(!passengers.isEmpty() ? passengers.get(passengers.size() - 1).getxAxis() + DISTANCE_PASSENGER : START);
         passengers.add(passenger);
     }
 
