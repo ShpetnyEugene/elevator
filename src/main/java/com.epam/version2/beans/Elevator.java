@@ -125,8 +125,16 @@ public class Elevator implements Runnable, Drawable {
             if (yAxis % COORDINATE_FLOOR == 0) {
                 needSleep(FLOOR_DELAY);
             }
-            
-            if (building.getFloors().get(currentFloor - 1).getPassengers().size() == passengers.size() || currentVolume == capacity) {
+
+
+            Floor temp = building.getFloors().get(currentFloor - 1);
+            int onElevator = 0;
+            for (Passenger passenger : temp.getPassengers()) {
+                if (passenger.getStatus() == StatusPassenger.ON_ELEVATOR) {
+                    onElevator++;
+                }
+            }
+            if (building.getFloors().get(currentFloor - 1).getPassengers().size() == onElevator|| currentVolume == capacity) {
                 doorMode = Move.CLOSE;
                 while (doorWidth < width / 2) {
                     needSleep(DELAY);
